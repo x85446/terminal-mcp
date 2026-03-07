@@ -41,7 +41,7 @@ Terminal MCP is a headless terminal emulator exposed via Model Context Protocol 
 **Tool Layer** (`src/tools/`):
 - Each tool has: Zod schema, tool definition object, handler function
 - Pattern: `export const fooTool = {...}` + `export function handleFoo(manager, args)`
-- Tools: `type`, `sendKey`, `getContent`, `takeScreenshot`
+- Tools: `type`, `sendKey`, `getContent`, `takeScreenshot` (formats: `text`, `ansi`, `png`)
 
 **Transport Layer** (`src/transport/`):
 - `socket.ts`: Unix socket server for tool proxying between modes. Also has `SocketTransport` class implementing MCP's Transport interface.
@@ -68,5 +68,5 @@ Tool Proxy Server ←───────────────→ Socket Cli
 
 - ES Modules with `.js` extensions in imports (NodeNext module resolution)
 - Zod for runtime validation of tool arguments
-- Tools return `{ content: [{ type: "text", text: string }], isError?: boolean }`
+- Tools return `{ content: [{ type: "text", text: string }], isError?: boolean }` (except `takeScreenshot` png format which returns `{ type: "image", data: string, mimeType: string }`)
 - Key sequences are in `src/utils/keys.ts` (ANSI escape codes)

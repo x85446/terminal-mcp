@@ -182,14 +182,24 @@ Get the terminal buffer as plain text.
 ```
 
 ### `takeScreenshot`
-Capture the terminal state with cursor position and dimensions.
+Capture the terminal state. Supports three output formats:
+
+| Format | Description |
+|--------|-------------|
+| `text` (default) | JSON with plain text content, cursor position, and dimensions |
+| `ansi` | JSON with ANSI color escape codes preserved in the content field |
+| `png` | Color screenshot as a PNG image (requires `@resvg/resvg-js`) |
 
 ```json
 {
   "name": "takeScreenshot",
-  "arguments": {}
+  "arguments": { "format": "text" }
 }
 ```
+
+The `ansi` format reconstructs SGR escape sequences from the terminal's cell buffer, preserving 16-color, 256-color, and 24-bit truecolor attributes along with bold, dim, italic, and underline styles.
+
+The `png` format returns an MCP `image` content block with base64-encoded PNG data, rendered with the One Dark color theme and macOS-style window chrome.
 
 ### `startRecording`
 Start recording terminal output to an asciicast v2 file.
