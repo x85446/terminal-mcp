@@ -144,69 +144,34 @@ export function renderTerminalToPng(terminal: Terminal, options: RenderOptions =
   }
   svg += '\n';
 
-  // Read cell data and render backgrounds
-  interface CellInfo {
-    x: number; y: number; char: string;
-    fgColor: string; bold: boolean;
-  }
-  const cellsByRow: CellInfo[][] = [];
-
+  // Render each character individually at its exact grid position
+  // (grouping into text runs causes drift with Unicode box/block characters)
   for (let y = 0; y < rows; y++) {
     const line = buffer.getLine(y);
-    if (!line) { cellsByRow.push([]); continue; }
-    const rowCells: CellInfo[] = [];
+    if (!line) continue;
 
     for (let x = 0; x < cols; x++) {
       const cell = line.getCell(x);
       if (!cell) continue;
 
-      const char = cell.getChars() || ' ';
+      const char = cell.getChars();
+      if (!char || char === ' ') continue;
+
       const bgColor = resolveColor(cell.getBgColor(), cell.getBgColorMode(), true);
       const fgColor = resolveColor(cell.getFgColor(), cell.getFgColorMode(), false);
       const bold = cell.isBold() === 1;
 
+      const cx = padX + x * charW;
+      const cy = padY + y * charH;
+
       // Render non-default backgrounds
       if (bgColor !== BG_COLOR) {
-        const cx = padX + x * charW;
-        const cy = padY + y * charH;
         svg += `<rect x="${cx}" y="${cy}" width="${charW}" height="${charH}" fill="${bgColor}"/>`;
       }
 
-      rowCells.push({ x, y, char, fgColor, bold });
+      const weight = bold ? ' font-weight="bold"' : '';
+      svg += `<text x="${cx}" y="${cy + charH - 4}" fill="${fgColor}"${weight}>${escapeXml(char)}</text>\n`;
     }
-    cellsByRow.push(rowCells);
-  }
-
-  // Render text, grouping consecutive same-color chars into runs
-  for (let y = 0; y < rows; y++) {
-    const rowCells = cellsByRow[y];
-    if (!rowCells || rowCells.length === 0) continue;
-
-    let runStart = 0;
-    let runColor = '';
-    let runBold = false;
-    let runText = '';
-
-    const flushRun = () => {
-      if (runText.length === 0 || runText.trim().length === 0) return;
-      const cx = padX + runStart * charW;
-      const cy = padY + y * charH + charH - 4;
-      const weight = runBold ? ' font-weight="bold"' : '';
-      svg += `<text x="${cx}" y="${cy}" fill="${runColor}"${weight}>${escapeXml(runText)}</text>\n`;
-    };
-
-    for (const cell of rowCells) {
-      if (cell.fgColor !== runColor || cell.bold !== runBold || cell.x !== runStart + runText.length) {
-        flushRun();
-        runStart = cell.x;
-        runColor = cell.fgColor;
-        runBold = cell.bold;
-        runText = cell.char;
-      } else {
-        runText += cell.char;
-      }
-    }
-    flushRun();
   }
 
   svg += '</svg>';
