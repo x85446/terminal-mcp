@@ -189,6 +189,14 @@ export class TerminalManager {
   }
 
   /**
+   * Get the underlying xterm.js Terminal instance for direct buffer access.
+   * Used by the color screenshot renderer.
+   */
+  getTerminal() {
+    return this.getSession().getTerminal();
+  }
+
+  /**
    * Clear the terminal
    */
   clear(): void {

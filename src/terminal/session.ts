@@ -345,6 +345,17 @@ ${bannerCmd}
   }
 
   /**
+   * Get the underlying xterm.js Terminal instance for direct buffer access.
+   * Used by the color screenshot renderer.
+   */
+  getTerminal(): InstanceType<typeof Terminal> {
+    if (this.disposed) {
+      throw new Error("Terminal session has been disposed");
+    }
+    return this.terminal;
+  }
+
+  /**
    * Get terminal dimensions
    */
   getDimensions(): { cols: number; rows: number } {
